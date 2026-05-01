@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chess AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      display: flex;
+      justify-content: center;
+      padding: 30px 16px;
+      min-height: 100vh;
+    }
+
+    #app { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+    h1 { font-size: 22px; font-weight: 600; color: #e2e8f0; }
+
+    #status {
+      font-size: 14px; font-weight: 500;
+      padding: 8px 20px; border-radius: 8px;
+      background: #16213e; border: 1px solid #2d3a5a;
+      color: #e2e8f0; min-width: 320px; text-align: center;
+    }
+
+    .board-wrap { display: flex; align-items: flex-start; gap: 4px; }
+
+    .rank-labels { display: flex; flex-direction: column; height: 480px; }
+    .rank-labels span {
+      height: 60px; line-height: 60px; font-size: 12px;
+      color: #94a3b8; width: 16px; text-align: center;
+    }
+
+    #board {
+      display: grid; grid-template-columns: repeat(8, 60px);
+      border: 3px solid #5c3d1a; border-radius: 2px; overflow: hidden;
+    }
+
+    .file-labels { display: flex; margin-top: 4px; }
+    .file-labels span { width: 60px; text-align: center; font-size: 12px; color: #94a3b8; }
+
+    .sq {
+      width: 60px; height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative; font-size: 42px;
+      user-select: none; cursor: pointer; transition: background 0.08s;
+    }
+
+    .sq.lt { background: #f0d9b5; }
+    .sq.dk { background: #b58863; }
+    .sq.sel { background: #7bc97b !important; }
+    .sq.lm  { background: rgba(204, 210, 80, 0.75) !important; }
+    .sq.chk {
+      background: radial-gradient(
+        circle, #e83838 0%, rgba(232,56,56,0.25) 70%, transparent 100%
+      ) !important;
+    }
+    .sq.mv::after {
+      content: ''; position: absolute;
+      width: 20px; height: 20px; border-radius: 50%;
+      background: rgba(0,0,0,0.2); pointer-events: none;
+    }
+    .sq.mvcap::after {
+      content: ''; position: absolute;
+      width: 56px; height: 56px; border-radius: 50%;
+      border: 5px solid rgba(0,0,0,0.22); pointer-events: none;
+    }
+    .pw { color: #fff; text-shadow: 0 0 2px #000, 0 0 3px #000; line-height: 1; }
+    .pb { color: #111; line-height: 1; }
+
+    #bar { display: flex; align-items: center; gap: 10px; }
+
+    button {
+      padding: 8px 18px; border-radius: 8px;
+      border: 1px solid #2d3a5a; background: #16213e;
+      color: #e2e8f0; font-size: 13px; font-family: inherit; cursor: pointer;
+    }
+    button:hover { background: #0f3460; }
+
+    select {
+      padding: 7px 10px; border-radius: 8px;
+      border: 1px solid #2d3a5a; background: #16213e;
+      color: #e2e8f0; font-size: 13px; font-family: inherit;
+    }
+
+    #tip { font-size: 12px; color: #94a3b8; font-style: italic; min-width: 80px; }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <h1>Chess AI</h1>
+  <div id="status">Loading...</div>
+
+  <div class="board-wrap">
+    <div class="rank-labels" id="rank-labels"></div>
+    <div>
+      <div id="board"></div>
+      <div class="file-labels" id="file-labels"></div>
+    </div>
+  </div>
+
+  <div id="bar">
+    <button onclick="newGame()">New game</button>
+    <select id="dep">
+      <option value="2">Easy  (depth 2)</option>
+      <option value="3" selected>Medium (depth 3)</option>
+    </select>
+    <div id="tip"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+//  CONSTANTS
+// ─────────────────────────────────────────────────────────────────────────────
+
+const GLYPHS = {
+  wk:'♔', wq:'♕', wr:'♖', wb:'♗', wn:'♘', wp:'♙',
+  bk:'♚', bq:'♛', br:'♜', bb:'♝', bn:'♞', bp:'♟',
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────────────────────────────────────
+
+let game, selectedSquare, legalTargets, lastMoveFrom, lastMoveTo;
+
+const rc2sq = (r, c) => String.fromCharCode(97 + c) + (8 - r);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  RENDERING
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renderBoard() {
+  const b = game.board();
+
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell   = document.getElementById(`sq-${r}-${c}`);
+      const square = rc2sq(r, c);
+
+      cell.className = `sq ${(r + c) % 2 === 0 ? 'lt' : 'dk'}`;
+      cell.innerHTML = '';
+
+      if (square === lastMoveFrom || square === lastMoveTo) cell.classList.add('lm');
+      if (square === selectedSquare) cell.classList.add('sel');
+
+      const piece = b[r][c];
+      if (legalTargets.includes(square)) cell.classList.add(piece ? 'mvcap' : 'mv');
+      if (piece) {
+        const span = document.createElement('span');
+        span.className   = piece.color === 'w' ? 'pw' : 'pb';
+        span.textContent = GLYPHS[piece.color + piece.type] || '?';
+        cell.appendChild(span);
+      }
+    }
+  }
+
+  if (game.in_check()) {
+    const turn = game.turn();
+    outer:
+    for (let r = 0; r < 8; r++) {
+      for (let c = 0; c < 8; c++) {
+        const p = game.board()[r][c];
+        if (p && p.type === 'k' && p.color === turn) {
+          document.getElementById(`sq-${r}-${c}`).classList.add('chk');
+          break outer;
+        }
+      }
+    }
+  }
+}
+
+function setStatus(msg) { document.getElementById('status').textContent = msg; }
+
+function refreshStatus() {
+  if (game.in_checkmate())
+    setStatus(game.turn() === 'w' ? '♚ Checkmate — AI wins!' : '♔ Checkmate — you win!');
+  else if (game.game_over())
+    setStatus('Draw!');
+  else if (game.turn() === 'w')
+    setStatus(game.in_check() ? '⚠ You are in check — White to move' : 'Your turn — White to move ♙');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  AI CALL  ← the only change from the standalone version
+//  Instead of running alpha-beta in JS, we POST the FEN to Flask and wait.
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function askAI() {
+  const depth = parseInt(document.getElementById('dep').value);
+
+  // Send the current board position as a FEN string
+  const response = await fetch('/move', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ fen: game.fen(), depth }),
+  });
+
+  if (!response.ok) {
+    setStatus('Server error — is app.py running?');
+    document.getElementById('tip').textContent = '';
+    return;
+  }
+
+  const data = await response.json();
+
+  if (!data.move) {
+    // Game already over on the server side
+    refreshStatus();
+    return;
+  }
+
+  // Apply the move returned in UCI format (e.g. "e7e5", "g1f3")
+  game.move({ from: data.move.slice(0, 2), to: data.move.slice(2, 4),
+              promotion: data.move[4] || undefined });
+
+  lastMoveFrom = data.move.slice(0, 2);
+  lastMoveTo   = data.move.slice(2, 4);
+
+  selectedSquare = null;
+  legalTargets   = [];
+  document.getElementById('tip').textContent = '';
+  renderBoard();
+  refreshStatus();
+
+  // Optional: log score to console for debugging
+  console.log(`AI move: ${data.move}  score: ${data.score} cp`);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  CLICK HANDLING  (unchanged from standalone version)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function handleClick(r, c) {
+  if (game.game_over() || game.turn() !== 'w') return;
+
+  const square = rc2sq(r, c);
+  const piece  = game.board()[r][c];
+
+  if (selectedSquare) {
+    if (legalTargets.includes(square)) {
+      const moveObj    = { from: selectedSquare, to: square };
+      const candidates = game.moves({ verbose: true })
+                             .filter(m => m.from === selectedSquare && m.to === square);
+      if (candidates.length && candidates[0].flags.includes('p')) moveObj.promotion = 'q';
+
+      if (game.move(moveObj)) {
+        lastMoveFrom   = selectedSquare;
+        lastMoveTo     = square;
+        selectedSquare = null;
+        legalTargets   = [];
+        renderBoard();
+
+        if (!game.game_over()) {
+          setStatus('AI is thinking...');
+          document.getElementById('tip').textContent = 'Thinking...';
+          askAI();   // ← async: calls Flask, awaits the move
+        } else {
+          refreshStatus();
+        }
+      }
+    } else if (piece && piece.color === 'w') {
+      selectedSquare = square;
+      legalTargets   = game.moves({ verbose: true })
+                           .filter(m => m.from === square).map(m => m.to);
+      renderBoard();
+    } else {
+      selectedSquare = null; legalTargets = []; renderBoard();
+    }
+  } else if (piece && piece.color === 'w') {
+    selectedSquare = square;
+    legalTargets   = game.moves({ verbose: true })
+                         .filter(m => m.from === square).map(m => m.to);
+    renderBoard();
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GAME MANAGEMENT
+// ─────────────────────────────────────────────────────────────────────────────
+
+function newGame() {
+  game           = new Chess();
+  selectedSquare = null;
+  legalTargets   = [];
+  lastMoveFrom   = null;
+  lastMoveTo     = null;
+  document.getElementById('tip').textContent = '';
+  renderBoard();
+  setStatus('Your turn — White to move ♙');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DOM INIT
+// ─────────────────────────────────────────────────────────────────────────────
+
+(function initDOM() {
+  const boardEl = document.getElementById('board');
+  for (let r = 0; r < 8; r++) {
+    for (let c = 0; c < 8; c++) {
+      const cell = document.createElement('div');
+      cell.id    = `sq-${r}-${c}`;
+      cell.addEventListener('click', () => handleClick(r, c));
+      boardEl.appendChild(cell);
+    }
+  }
+
+  const rankEl = document.getElementById('rank-labels');
+  for (let r = 0; r < 8; r++) {
+    const span = document.createElement('span');
+    span.textContent = 8 - r;
+    rankEl.appendChild(span);
+  }
+
+  const fileEl = document.getElementById('file-labels');
+  for (let c = 0; c < 8; c++) {
+    const span = document.createElement('span');
+    span.textContent = String.fromCharCode(97 + c);
+    fileEl.appendChild(span);
+  }
+
+  newGame();
+})();
+</script>
+</body>
+</html>
