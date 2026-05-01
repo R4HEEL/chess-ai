@@ -1385,30 +1385,42 @@ document.getElementById('tog-eval').addEventListener('change', function () {
 /* ─── BOARD RENDERING ────────────────────────────── */
 function renderBoard() {
   const b = game.board(), glyphs = getGlyphs();
+
   for (let r = 0; r < 8; r++) {
     for (let c = 0; c < 8; c++) {
       const cell = document.getElementById(`sq-${r}-${c}`);
       if (!cell) continue;
       const sq = rc2sq(r, c);
+      const p  = b[r][c];
 
+      // ── 1. Update square highlight classes only ──────────────
       cell.className = `sq ${(r + c) % 2 === 0 ? 'lt' : 'dk'}`;
-      cell.querySelectorAll('.piece').forEach(n => n.remove());
+      if (sq === lastMoveFrom)        cell.classList.add('lm-from');
+      if (sq === lastMoveTo)          cell.classList.add('lm-to');
+      if (sq === selectedSquare)      cell.classList.add('sel');
+      if (legalTargets.includes(sq))  cell.classList.add(p ? 'mv-cap' : 'mv-dot');
 
-      if (sq === lastMoveFrom)   cell.classList.add('lm-from');
-      if (sq === lastMoveTo)     cell.classList.add('lm-to');
-      if (sq === selectedSquare) cell.classList.add('sel');
-      if (legalTargets.includes(sq)) cell.classList.add(b[r][c] ? 'mv-cap' : 'mv-dot');
+      // ── 2. Only update the piece if it actually changed ──────
+      const existing = cell.querySelector('.piece');
+      const newKey   = p ? p.color + p.type : null;
+      const oldKey   = existing ? existing.dataset.key : null;
 
-      const p = b[r][c];
+      if (newKey === oldKey) continue;
+
+      if (existing) existing.remove();
+
       if (p) {
-        const span       = document.createElement('span');
-        span.className   = `piece ${p.color === 'w' ? 'white' : 'black'}`;
-        span.textContent = glyphs[p.color + p.type] || '?';
+        const span         = document.createElement('span');
+        span.className     = `piece ${p.color === 'w' ? 'white' : 'black'}`;
+        span.dataset.key   = newKey;
+        span.textContent   = glyphs[newKey] || '?';
+        if (sq !== lastMoveTo) span.style.animation = 'none';
         cell.appendChild(span);
       }
     }
   }
 
+  // ── 3. King-in-check highlight ───────────────────────────────
   if (game.in_check()) {
     const turn = game.turn();
     outer: for (let r = 0; r < 8; r++) {
