@@ -1320,11 +1320,15 @@ function rebuildMoveHistory() {
     const wCell = document.createElement('div');
     wCell.className   = 'move-cell';
     wCell.textContent = moveHistory[i].san;
+    wCell.addEventListener('click', () => { if (inReview) jumpToMove(i); });
 
     const bCell = document.createElement('div');
     bCell.className   = 'move-cell';
     bCell.id          = `mcell-b-${fullMove}`;
-    if (moveHistory[i + 1]) bCell.textContent = moveHistory[i + 1].san;
+    if (moveHistory[i + 1]) {
+      bCell.textContent = moveHistory[i + 1].san;
+      bCell.addEventListener('click', () => { if (inReview) jumpToMove(i + 1); });
+    }
 
     row.appendChild(num); row.appendChild(wCell); row.appendChild(bCell);
     list.appendChild(row);
@@ -1348,6 +1352,7 @@ function appendMoveToHistory(entry, idx) {
     const wCell = document.createElement('div');
     wCell.className   = 'move-cell';
     wCell.textContent = entry.san;
+    wCell.addEventListener('click', () => { if (inReview) jumpToMove(idx); });
 
     const bCell = document.createElement('div');
     bCell.className = 'move-cell';
@@ -1357,7 +1362,10 @@ function appendMoveToHistory(entry, idx) {
     list.appendChild(row);
   } else {
     const bCell = document.getElementById(`mcell-b-${fullMove}`);
-    if (bCell) bCell.textContent = entry.san;
+    if (bCell) {
+      bCell.textContent = entry.san;
+      bCell.addEventListener('click', () => { if (inReview) jumpToMove(idx); });
+    }
   }
   list.scrollTop = list.scrollHeight;
 }
@@ -1579,9 +1587,29 @@ function reviewStep(dir) {
   updateReviewNav();
 }
 
+function jumpToMove(idx) {
+  reviewIdx      = idx + 1;
+  game.load(moveHistory[idx].fen);
+  lastMoveFrom   = moveHistory[idx].from;
+  lastMoveTo     = moveHistory[idx].to;
+  selectedSquare = null; legalTargets = [];
+  renderBoard();
+  updateReviewNav();
+}
+
 function updateReviewNav() {
   document.getElementById('btn-prev').disabled = reviewIdx === 0;
   document.getElementById('btn-next').disabled = reviewIdx === moveHistory.length;
+
+  document.querySelectorAll('.move-cell').forEach(el => el.classList.remove('active'));
+  if (reviewIdx > 0) {
+    const idx  = reviewIdx - 1;
+    const row  = document.querySelectorAll('.move-row')[Math.floor(idx / 2)];
+    if (row) {
+      const cells = row.querySelectorAll('.move-cell');
+      if (cells[idx % 2]) cells[idx % 2].classList.add('active');
+    }
+  }
 }
 
 /* ─── START GAME ─────────────────────────────────── */
