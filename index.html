@@ -1505,7 +1505,11 @@ async function askAI() {
   renderBoard();
 
   if (!checkGameOver()) {
-    setStatus('Your turn — <span class="highlight">White to move ♙</span>');
+    if (data.source === 'book') {
+      setStatus('📖 <span class="highlight">Book move</span> — AI playing theory');
+    } else {
+      setStatus('Your turn — <span class="highlight">White to move ♙</span>');
+    }
     updateTimerActive();
   }
 }
