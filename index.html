@@ -1021,6 +1021,18 @@
       </select>
     </div>
 
+    <!-- AI Algorithm -->
+    <div class="form-group">
+      <label class="form-label">AI Algorithm</label>
+      <div class="tab-group" id="algo-tabs">
+        <div class="tab active" data-algo="alphabeta" onclick="selectAlgo(this)">⚡ Alpha-Beta</div>
+        <div class="tab"        data-algo="mcts"      onclick="selectAlgo(this)">🎲 Monte Carlo</div>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:var(--text-muted)" id="algo-desc">
+        Exhaustive search with pruning — strongest at fixed depth.
+      </div>
+    </div>
+
     <!-- Timer toggle -->
     <div class="form-group">
       <div class="toggle-row">
@@ -1186,6 +1198,7 @@ const getGlyphs = () =>
 
 /* ─── STATE ──────────────────────────────────────── */
 let game, selectedSquare, legalTargets, lastMoveFrom, lastMoveTo;
+let legalMovesCache = {}; // square -> [verbose move objects] — rebuilt once per turn
 let gameDepth    = 3;
 let timerEnabled = false;
 let whiteTime    = 300;
@@ -1233,6 +1246,21 @@ function closeSettings() {
 });
 
 /* ─── FORM TOGGLES ───────────────────────────────── */
+const ALGO_DESC = {
+  alphabeta: 'Exhaustive search with pruning — strongest at fixed depth.',
+  mcts:      'Random playouts + statistics — no evaluation function needed.',
+};
+
+function selectAlgo(el) {
+  document.querySelectorAll('#algo-tabs .tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('algo-desc').textContent = ALGO_DESC[el.dataset.algo];
+}
+
+function getSelectedAlgo() {
+  return document.querySelector('#algo-tabs .tab.active')?.dataset.algo || 'alphabeta';
+}
+
 function toggleTimerSub() {
   document.getElementById('sub-timer').classList.toggle(
     'visible', document.getElementById('tog-timer').checked);
@@ -1473,7 +1501,7 @@ async function askAI() {
   const res = await fetch('/move', {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ fen: game.fen(), depth: gameDepth }),
+    body:    JSON.stringify({ fen: game.fen(), depth: gameDepth, algorithm: getSelectedAlgo() }),
   });
 
   aiThinking = false;
@@ -1505,12 +1533,23 @@ async function askAI() {
   renderBoard();
 
   if (!checkGameOver()) {
+    buildLegalMovesCache();
     if (data.source === 'book') {
       setStatus('📖 <span class="highlight">Book move</span> — AI playing theory');
     } else {
       setStatus('Your turn — <span class="highlight">White to move ♙</span>');
     }
     updateTimerActive();
+  }
+}
+
+/* ─── LEGAL MOVES CACHE ──────────────────────────── */
+function buildLegalMovesCache() {
+  legalMovesCache = {};
+  if (game.game_over() || game.turn() !== 'w') return;
+  for (const m of game.moves({ verbose: true })) {
+    if (!legalMovesCache[m.from]) legalMovesCache[m.from] = [];
+    legalMovesCache[m.from].push(m);
   }
 }
 
@@ -1524,15 +1563,14 @@ function handleClick(r, c) {
   if (selectedSquare) {
     if (legalTargets.includes(sq)) {
       const moveObj = { from: selectedSquare, to: sq };
-      const cands   = game.moves({ verbose: true })
-                          .filter(m => m.from === selectedSquare && m.to === sq);
+      const cands   = (legalMovesCache[selectedSquare] || []).filter(m => m.to === sq);
       if (cands.length && cands[0].flags.includes('p')) moveObj.promotion = 'q';
 
       const result = game.move(moveObj);
       if (result) {
         lastMoveFrom   = selectedSquare;
         lastMoveTo     = sq;
-        selectedSquare = null; legalTargets = [];
+        selectedSquare = null; legalTargets = []; legalMovesCache = {};
 
         const entry = { san: result.san, fen: game.fen(), from: lastMoveFrom, to: lastMoveTo };
         const idx   = moveHistory.length;
@@ -1550,13 +1588,13 @@ function handleClick(r, c) {
 
     if (piece && piece.color === 'w') {
       selectedSquare = sq;
-      legalTargets   = game.moves({ verbose: true }).filter(m => m.from === sq).map(m => m.to);
+      legalTargets   = (legalMovesCache[sq] || []).map(m => m.to);
     } else {
       selectedSquare = null; legalTargets = [];
     }
   } else if (piece && piece.color === 'w') {
     selectedSquare = sq;
-    legalTargets   = game.moves({ verbose: true }).filter(m => m.from === sq).map(m => m.to);
+    legalTargets   = (legalMovesCache[sq] || []).map(m => m.to);
   }
 
   renderBoard();
@@ -1574,6 +1612,7 @@ function undoMove() {
   selectedSquare = null; legalTargets = [];
 
   rebuildMoveHistory();
+  buildLegalMovesCache();
   updateEvalBar(0);
   renderBoard();
   setStatus('Your turn — <span class="highlight">White to move ♙</span>');
@@ -1652,6 +1691,7 @@ function startGame() {
   rebuildMoveHistory();
   updateTimerDisplays();
   initBoard();
+  buildLegalMovesCache();
   updateEvalBar(0);
 
   if (timerEnabled) { startTimer(); document.getElementById('timer-player').classList.add('active'); }
