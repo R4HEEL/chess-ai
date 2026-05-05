@@ -8,15 +8,12 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    /* ═══════════════════════════════════════════════════════════
-       CSS CUSTOM PROPERTIES — THEMES
-    ═══════════════════════════════════════════════════════════ */
+
     :root {
       --font-display: 'Playfair Display', Georgia, serif;
       --font-body:    'DM Sans', sans-serif;
       --font-mono:    'DM Mono', monospace;
 
-      /* App chrome */
       --bg:           #0d0d0f;
       --surface:      #18181c;
       --surface-2:    #202026;
@@ -32,17 +29,14 @@
       --danger:       #e05c5c;
       --success:      #5cb85c;
 
-      /* Transitions */
       --t-fast: 120ms ease;
       --t-med:  240ms ease;
       --t-slow: 400ms cubic-bezier(0.16,1,0.3,1);
 
-      /* Board sizing */
       --sq: 68px;
       --board-size: calc(var(--sq) * 8);
     }
 
-    /* Board themes */
     [data-theme="wood"] {
       --sq-light:  #f0d9b5;
       --sq-dark:   #b58863;
@@ -68,9 +62,6 @@
       --sq-lm:     rgba(180,140,220,0.65);
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       RESET & BASE
-    ═══════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
@@ -83,7 +74,6 @@
       overflow: hidden;
     }
 
-    /* Subtle grain texture overlay */
     body::before {
       content: '';
       position: fixed; inset: 0; z-index: 0;
@@ -92,9 +82,6 @@
       opacity: 0.5;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       APP SHELL
-    ═══════════════════════════════════════════════════════════ */
     #app {
       position: relative; z-index: 1;
       height: 100vh;
@@ -105,7 +92,6 @@
 
     #app.blurred { filter: blur(6px) brightness(0.4); pointer-events: none; }
 
-    /* Top bar */
     #topbar {
       display: flex;
       align-items: center;
@@ -126,7 +112,6 @@
 
     .topbar-right { display: flex; align-items: center; gap: 10px; }
 
-    /* Icon button */
     .icon-btn {
       width: 36px; height: 36px;
       border-radius: 8px;
@@ -140,7 +125,6 @@
     }
     .icon-btn:hover { background: var(--surface-3); color: var(--accent); border-color: var(--accent-glow); }
 
-    /* Main content area */
     #main {
       flex: 1;
       display: flex;
@@ -151,9 +135,6 @@
       overflow: hidden;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       EVAL BAR
-    ═══════════════════════════════════════════════════════════ */
     #eval-bar-wrap {
       display: flex;
       flex-direction: column;
@@ -177,14 +158,13 @@
       box-shadow: inset 0 1px 3px rgba(0,0,0,0.4);
     }
 
-    /* Black fill at top, white fill grows from bottom */
     #eval-fill {
       position: absolute;
       bottom: 0; left: 0; right: 0;
       background: #f0ede8;
       border-radius: 0 0 8px 8px;
       transition: height 600ms cubic-bezier(0.34,1.56,0.64,1);
-      height: 50%; /* default: equal */
+      height: 50%; 
     }
 
     #eval-score {
@@ -194,9 +174,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       BOARD AREA
-    ═══════════════════════════════════════════════════════════ */
     #board-area {
       display: flex;
       flex-direction: column;
@@ -206,7 +183,7 @@
     #board-labels-top,
     #board-labels-bottom {
       display: flex;
-      padding-left: 20px; /* rank label width */
+      padding-left: 20px; 
     }
 
     .file-label {
@@ -253,7 +230,6 @@
         0 8px 24px rgba(0,0,0,0.4);
     }
 
-    /* ── Squares ── */
     .sq {
       width: var(--sq); height: var(--sq);
       display: flex; align-items: center; justify-content: center;
@@ -267,7 +243,6 @@
     .sq.lt { background: var(--sq-light); }
     .sq.dk { background: var(--sq-dark);  }
 
-    /* Corner coordinate hints */
     .sq .coord {
       position: absolute;
       font-family: var(--font-mono);
@@ -281,7 +256,6 @@
     .sq .coord.rank { top: 3px; left: 4px; }
     .sq .coord.file { bottom: 3px; right: 4px; }
 
-    /* Highlight states */
     .sq.sel    { background: var(--sq-sel) !important; }
     .sq.lm-from,
     .sq.lm-to  { background: var(--sq-lm) !important; }
@@ -292,7 +266,6 @@
       ) !important;
     }
 
-    /* Legal move dots */
     .sq.mv-dot::after {
       content: '';
       position: absolute;
@@ -318,7 +291,6 @@
       to   { transform: scale(1);   opacity: 1; }
     }
 
-    /* Piece */
     .piece {
       line-height: 1;
       pointer-events: none;
@@ -333,9 +305,6 @@
       to   { transform: translateY(0) scale(1); opacity: 1; }
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       SIDEBAR
-    ═══════════════════════════════════════════════════════════ */
     #sidebar {
       width: 220px;
       height: var(--board-size);
@@ -345,7 +314,6 @@
       flex-shrink: 0;
     }
 
-    /* Timer cards */
     .timer-card {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -387,7 +355,6 @@
       transition: color var(--t-med);
     }
 
-    /* Move history */
     #history-panel {
       flex: 1;
       background: var(--surface);
@@ -459,7 +426,6 @@
       font-weight: 600;
     }
 
-    /* Controls */
     #controls {
       display: flex;
       gap: 6px;
@@ -486,9 +452,6 @@
 
     .ctrl-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
-    /* ═══════════════════════════════════════════════════════════
-       STATUS BAR
-    ═══════════════════════════════════════════════════════════ */
     #status-bar {
       flex-shrink: 0;
       text-align: center;
@@ -503,9 +466,6 @@
     #status-bar .highlight { color: var(--accent); font-weight: 600; }
     #status-bar .warning   { color: var(--danger); font-weight: 600; }
 
-    /* ═══════════════════════════════════════════════════════════
-       OVERLAY BACKDROP
-    ═══════════════════════════════════════════════════════════ */
     .overlay {
       position: fixed; inset: 0; z-index: 100;
       display: flex; align-items: center; justify-content: center;
@@ -522,7 +482,6 @@
       pointer-events: all;
     }
 
-    /* Modal card */
     .modal {
       background: var(--surface);
       border: 1px solid var(--border-2);
@@ -556,7 +515,6 @@
       line-height: 1.6;
     }
 
-    /* ── Form elements inside modal ── */
     .form-group {
       margin-bottom: 18px;
     }
@@ -571,7 +529,6 @@
       margin-bottom: 8px;
     }
 
-    /* Select */
     .form-select {
       width: 100%;
       padding: 10px 14px;
@@ -591,7 +548,6 @@
 
     .form-select:focus { outline: none; border-color: var(--accent); }
 
-    /* Toggle row */
     .toggle-row {
       display: flex;
       align-items: center;
@@ -606,7 +562,6 @@
     .toggle-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
     .toggle-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
-    /* Toggle switch */
     .toggle {
       position: relative;
       width: 42px; height: 24px;
@@ -646,7 +601,6 @@
       background: #fff;
     }
 
-    /* Sub-options (shown when toggle is on) */
     .sub-options {
       margin-top: 10px;
       padding: 12px;
@@ -664,7 +618,6 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* Time preset pills */
     .pill-group {
       display: flex;
       gap: 6px;
@@ -687,7 +640,6 @@
     .pill:hover { border-color: var(--accent-glow); color: var(--text-primary); }
     .pill.selected { background: var(--accent); border-color: var(--accent); color: #0d0d0f; font-weight: 600; }
 
-    /* Primary button */
     .btn-primary {
       width: 100%;
       padding: 13px;
@@ -713,7 +665,6 @@
 
     .btn-primary:active { transform: translateY(0); }
 
-    /* Secondary button */
     .btn-secondary {
       flex: 1;
       padding: 11px;
@@ -736,17 +687,11 @@
       margin-top: 24px;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       NEW GAME MODAL — specific
-    ═══════════════════════════════════════════════════════════ */
     #newgame-modal .modal-title::before {
       content: '♟ ';
       color: var(--accent);
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       SETTINGS MODAL — theme swatches
-    ═══════════════════════════════════════════════════════════ */
     .swatch-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -775,19 +720,15 @@
 
     .swatch-sq { flex: 1; }
 
-    /* Wood swatch */
     [data-swatch="wood"] .swatch-sq:nth-child(odd)  { background: #f0d9b5; }
     [data-swatch="wood"] .swatch-sq:nth-child(even) { background: #b58863; }
 
-    /* Blue swatch */
     [data-swatch="blue"] .swatch-sq:nth-child(odd)  { background: #dee3e6; }
     [data-swatch="blue"] .swatch-sq:nth-child(even) { background: #8ca2ad; }
 
-    /* Green swatch */
     [data-swatch="green"] .swatch-sq:nth-child(odd)  { background: #ffffdd; }
     [data-swatch="green"] .swatch-sq:nth-child(even) { background: #6d9a5a; }
 
-    /* Purple swatch */
     [data-swatch="purple"] .swatch-sq:nth-child(odd)  { background: #e8dff5; }
     [data-swatch="purple"] .swatch-sq:nth-child(even) { background: #7c5cbf; }
 
@@ -798,7 +739,6 @@
       color: var(--text-secondary);
     }
 
-    /* Piece style tabs */
     .tab-group {
       display: flex;
       background: var(--surface-2);
@@ -822,9 +762,6 @@
     .tab:hover { color: var(--text-primary); }
     .tab.active { background: var(--surface-3); color: var(--text-primary); font-weight: 600; }
 
-    /* ═══════════════════════════════════════════════════════════
-       END GAME MODAL
-    ═══════════════════════════════════════════════════════════ */
     #endgame-modal .result-icon {
       font-size: 48px;
       margin-bottom: 12px;
@@ -843,9 +780,6 @@
       margin-top: 4px;
     }
 
-    /* ═══════════════════════════════════════════════════════════
-       REVIEW MODE banner
-    ═══════════════════════════════════════════════════════════ */
     #review-banner {
       display: none;
       align-items: center;
@@ -879,18 +813,11 @@
     .review-nav-btn:hover { background: var(--accent-dim); }
     .review-nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
-    /* ═══════════════════════════════════════════════════════════
-       UTILITY
-    ═══════════════════════════════════════════════════════════ */
     .hidden { display: none !important; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
 
-    /* Scrollbar for sidebar */
     * { scrollbar-width: thin; scrollbar-color: var(--surface-3) transparent; }
 
-    /* ═══════════════════════════════════════════════════════════
-       RESPONSIVE — shrink board on smaller viewports
-    ═══════════════════════════════════════════════════════════ */
     @media (max-height: 700px) {
       :root { --sq: 56px; }
       .timer-display { font-size: 18px; }
@@ -906,12 +833,8 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════
-     APP SHELL
-═══════════════════════════════════════════════════════════ -->
 <div id="app" class="blurred">
 
-  <!-- Top bar -->
   <header id="topbar">
     <div class="logo">Chess AI <span>v2.0</span></div>
     <div class="topbar-right">
@@ -920,7 +843,6 @@
     </div>
   </header>
 
-  <!-- Review mode banner (hidden until review mode) -->
   <div id="review-banner">
     <span>📽 Review Mode — board is frozen</span>
     <div class="review-nav">
@@ -929,10 +851,8 @@
     </div>
   </div>
 
-  <!-- Main content -->
   <main id="main">
 
-    <!-- Eval bar -->
     <div id="eval-bar-wrap" class="hidden">
       <div id="eval-bar">
         <div id="eval-fill"></div>
@@ -940,28 +860,25 @@
       <div id="eval-score">0.0</div>
     </div>
 
-    <!-- Board -->
     <div id="board-area">
       <div id="board-labels-top">
-        <!-- filled by JS -->
+
       </div>
       <div id="board-with-ranks">
         <div id="rank-labels">
-          <!-- filled by JS -->
+
         </div>
         <div id="board">
-          <!-- filled by JS -->
+
         </div>
       </div>
       <div id="board-labels-bottom">
-        <!-- filled by JS -->
+
       </div>
     </div>
 
-    <!-- Sidebar -->
     <aside id="sidebar">
 
-      <!-- AI timer (top) -->
       <div class="timer-card" id="timer-ai">
         <div>
           <div class="timer-label">AI · Black</div>
@@ -969,15 +886,13 @@
         <div class="timer-display" id="timer-ai-display">—</div>
       </div>
 
-      <!-- Move history -->
       <div id="history-panel">
         <div class="panel-header">Move History</div>
         <div id="move-list">
-          <!-- move rows injected by JS -->
+          
         </div>
       </div>
 
-      <!-- Player timer (bottom) -->
       <div class="timer-card" id="timer-player">
         <div>
           <div class="timer-label">You · White</div>
@@ -985,7 +900,6 @@
         <div class="timer-display" id="timer-player-display">—</div>
       </div>
 
-      <!-- Controls -->
       <div id="controls">
         <button class="ctrl-btn" id="btn-undo" onclick="undoMove()">↩ Undo</button>
         <button class="ctrl-btn danger"         onclick="openNewGame()">✕ Resign</button>
@@ -994,22 +908,17 @@
     </aside>
   </main>
 
-  <!-- Status bar -->
   <div id="status-bar">Waiting to start…</div>
 
-</div><!-- /#app -->
+</div>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     NEW GAME OVERLAY
-═══════════════════════════════════════════════════════════ -->
 <div class="overlay visible" id="newgame-overlay">
   <div class="modal" id="newgame-modal">
 
     <div class="modal-title">New Game</div>
     <div class="modal-subtitle">Configure your match settings below.</div>
 
-    <!-- AI Depth -->
     <div class="form-group">
       <label class="form-label" for="sel-depth">AI Difficulty (Search Depth)</label>
       <select class="form-select" id="sel-depth">
@@ -1021,7 +930,6 @@
       </select>
     </div>
 
-    <!-- AI Algorithm -->
     <div class="form-group">
       <label class="form-label">AI Algorithm</label>
       <div class="tab-group" id="algo-tabs">
@@ -1033,7 +941,6 @@
       </div>
     </div>
 
-    <!-- Timer toggle -->
     <div class="form-group">
       <div class="toggle-row">
         <div class="toggle-info">
@@ -1046,7 +953,6 @@
         </label>
       </div>
 
-      <!-- Sub-options: time presets -->
       <div class="sub-options" id="sub-timer">
         <div class="form-label" style="margin-bottom:8px">Time Control</div>
         <div class="pill-group">
@@ -1057,7 +963,6 @@
       </div>
     </div>
 
-    <!-- Eval bar toggle -->
     <div class="form-group">
       <div class="toggle-row">
         <div class="toggle-info">
@@ -1077,16 +982,12 @@
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     SETTINGS OVERLAY
-═══════════════════════════════════════════════════════════ -->
 <div class="overlay" id="settings-overlay">
   <div class="modal" id="settings-modal">
 
     <div class="modal-title">Settings</div>
     <div class="modal-subtitle">Personalise the board appearance.</div>
 
-    <!-- Board theme -->
     <div class="form-group">
       <label class="form-label">Board Theme</label>
       <div class="swatch-grid">
@@ -1142,7 +1043,7 @@
       </div>
     </div>
 
-    <!-- Piece style -->
+
     <div class="form-group">
       <label class="form-label">Piece Style</label>
       <div class="tab-group">
@@ -1159,9 +1060,6 @@
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     END GAME OVERLAY
-═══════════════════════════════════════════════════════════ -->
 <div class="overlay" id="endgame-overlay">
   <div class="modal" id="endgame-modal">
 
@@ -1178,12 +1076,10 @@
 </div>
 
 
-<!-- ═══════════════════════════════════════════════════════════
-     chess.js + your AI engine
-═══════════════════════════════════════════════════════════ -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 <script>
-/* ─── GLYPHS ─────────────────────────────────────── */
+
 const GLYPHS_CLASSIC = {
   wk:'♔',wq:'♕',wr:'♖',wb:'♗',wn:'♘',wp:'♙',
   bk:'♚',bq:'♛',br:'♜',bb:'♝',bn:'♞',bp:'♟',
@@ -1196,27 +1092,24 @@ const getGlyphs = () =>
   document.documentElement.getAttribute('data-pieces') === 'minimal'
     ? GLYPHS_MINIMAL : GLYPHS_CLASSIC;
 
-/* ─── STATE ──────────────────────────────────────── */
 let game, selectedSquare, legalTargets, lastMoveFrom, lastMoveTo;
-let legalMovesCache = {}; // square -> [verbose move objects] — rebuilt once per turn
+let legalMovesCache = {}; 
 let gameDepth    = 3;
 let timerEnabled = false;
 let whiteTime    = 300;
 let blackTime    = 300;
 let timerInterval = null;
-let moveHistory  = [];   // [{san, fen, from, to}]
+let moveHistory  = [];   
 let reviewIdx    = 0;
 let inReview     = false;
 let aiThinking   = false;
 
 const rc2sq = (r, c) => String.fromCharCode(97 + c) + (8 - r);
 
-/* ─── STATUS ─────────────────────────────────────── */
 function setStatus(html) {
   document.getElementById('status-bar').innerHTML = html;
 }
 
-/* ─── MODAL HELPERS ──────────────────────────────── */
 function openNewGame() {
   document.getElementById('newgame-overlay').classList.add('visible');
   document.getElementById('endgame-overlay').classList.remove('visible');
@@ -1245,7 +1138,6 @@ function closeSettings() {
   });
 });
 
-/* ─── FORM TOGGLES ───────────────────────────────── */
 const ALGO_DESC = {
   alphabeta: 'Exhaustive search with pruning — strongest at fixed depth.',
   mcts:      'Random playouts + statistics — no evaluation function needed.',
@@ -1271,7 +1163,6 @@ function selectTime(el) {
   el.classList.add('selected');
 }
 
-/* ─── THEME & PIECES ─────────────────────────────── */
 function setTheme(name, el) {
   document.documentElement.setAttribute('data-theme', name);
   document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
@@ -1285,7 +1176,6 @@ function setPieceStyle(style, el) {
   renderBoard();
 }
 
-/* ─── TIMER ──────────────────────────────────────── */
 function formatTime(secs) {
   return `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
 }
@@ -1332,7 +1222,6 @@ function startTimer() {
 
 function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
 
-/* ─── MOVE HISTORY ───────────────────────────────── */
 function rebuildMoveHistory() {
   const list = document.getElementById('move-list');
   list.innerHTML = '';
@@ -1398,7 +1287,6 @@ function appendMoveToHistory(entry, idx) {
   list.scrollTop = list.scrollHeight;
 }
 
-/* ─── EVAL BAR ───────────────────────────────────── */
 function updateEvalBar(cpScore) {
   const pct = ((Math.max(-800, Math.min(800, cpScore)) + 800) / 1600) * 100;
   document.getElementById('eval-fill').style.height = pct + '%';
@@ -1410,7 +1298,6 @@ document.getElementById('tog-eval').addEventListener('change', function () {
   document.getElementById('eval-bar-wrap').classList.toggle('hidden', !this.checked);
 });
 
-/* ─── BOARD RENDERING ────────────────────────────── */
 function renderBoard() {
   const b = game.board(), glyphs = getGlyphs();
 
@@ -1421,14 +1308,12 @@ function renderBoard() {
       const sq = rc2sq(r, c);
       const p  = b[r][c];
 
-      // ── 1. Update square highlight classes only ──────────────
       cell.className = `sq ${(r + c) % 2 === 0 ? 'lt' : 'dk'}`;
       if (sq === lastMoveFrom)        cell.classList.add('lm-from');
       if (sq === lastMoveTo)          cell.classList.add('lm-to');
       if (sq === selectedSquare)      cell.classList.add('sel');
       if (legalTargets.includes(sq))  cell.classList.add(p ? 'mv-cap' : 'mv-dot');
 
-      // ── 2. Only update the piece if it actually changed ──────
       const existing = cell.querySelector('.piece');
       const newKey   = p ? p.color + p.type : null;
       const oldKey   = existing ? existing.dataset.key : null;
@@ -1448,7 +1333,6 @@ function renderBoard() {
     }
   }
 
-  // ── 3. King-in-check highlight ───────────────────────────────
   if (game.in_check()) {
     const turn = game.turn();
     outer: for (let r = 0; r < 8; r++) {
@@ -1463,7 +1347,6 @@ function renderBoard() {
   }
 }
 
-/* ─── END GAME ───────────────────────────────────── */
 function showEndgame(title, icon, reason) {
   stopTimer();
   document.getElementById('result-title').textContent  = title;
@@ -1492,7 +1375,6 @@ function checkGameOver() {
   return false;
 }
 
-/* ─── AI CALL ────────────────────────────────────── */
 async function askAI() {
   if (game.game_over()) return;
   aiThinking = true;
@@ -1543,7 +1425,6 @@ async function askAI() {
   }
 }
 
-/* ─── LEGAL MOVES CACHE ──────────────────────────── */
 function buildLegalMovesCache() {
   legalMovesCache = {};
   if (game.game_over() || game.turn() !== 'w') return;
@@ -1553,7 +1434,6 @@ function buildLegalMovesCache() {
   }
 }
 
-/* ─── CLICK HANDLING ─────────────────────────────── */
 function handleClick(r, c) {
   if (game.game_over() || game.turn() !== 'w' || aiThinking || inReview) return;
 
@@ -1600,7 +1480,6 @@ function handleClick(r, c) {
   renderBoard();
 }
 
-/* ─── UNDO ───────────────────────────────────────── */
 function undoMove() {
   if (inReview || aiThinking || moveHistory.length < 2) return;
   game.undo(); game.undo();
@@ -1619,7 +1498,6 @@ function undoMove() {
   updateTimerActive();
 }
 
-/* ─── REVIEW MODE ────────────────────────────────── */
 function startReview() {
   document.getElementById('endgame-overlay').classList.remove('visible');
   document.getElementById('app').classList.remove('blurred');
@@ -1667,7 +1545,6 @@ function updateReviewNav() {
   }
 }
 
-/* ─── START GAME ─────────────────────────────────── */
 function startGame() {
   gameDepth    = parseInt(document.getElementById('sel-depth').value);
   timerEnabled = document.getElementById('tog-timer').checked;
@@ -1698,7 +1575,6 @@ function startGame() {
   setStatus('Your turn — <span class="highlight">White to move ♙</span>');
 }
 
-/* ─── INIT BOARD DOM ─────────────────────────────── */
 function initBoard() {
   const boardEl = document.getElementById('board');
   boardEl.innerHTML = '';
@@ -1724,7 +1600,6 @@ function initBoard() {
   renderBoard();
 }
 
-/* ─── BOOT ───────────────────────────────────────── */
 game = new Chess(); selectedSquare = null; legalTargets = [];
 lastMoveFrom = null; lastMoveTo = null;
 moveHistory = []; aiThinking = false; inReview = false; reviewIdx = 0;
