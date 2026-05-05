@@ -1,9 +1,14 @@
 # Chess AI Web Application
 
-A browser-based chess engine that lets you play against two classic AI algorithms — Alpha-Beta Pruning and Monte Carlo Tree Search — deployed using Flask and Railway.
+This is a browser-based chess game that lets you play against AI using two different approaches: Alpha-Beta Pruning and Monte Carlo Tree Search. It runs on Flask and is deployed through Railway.
 
-Built for the Artificial Intelligence course by Raheel Shaikh (31554), Umer Bin Affan (30497), and Rayan Adil (30556).
+Course: Artificial Intelligence  
+Instructor: Dr Tahir Syed  
 
+Group Members:
+Raheel Shaikh - 31554
+Umer Bin Affan - 30497
+Rayan Adil - 30556
 ---
 
 ## Live Demo
